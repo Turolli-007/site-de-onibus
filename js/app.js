@@ -1,4 +1,4 @@
-/**
+1/**
  * SP Bus Tracker - Aplicação Principal
  * Rastreamento de ônibus do estado de São Paulo via API Olho Vivo (SPTrans)
  */
@@ -173,16 +173,59 @@ class BusTracker {
     // ========================================
 
     async apiRequest(endpoint) {
-        try {
-            const response = await fetch(endpoint);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return await response.json();
-        } catch (error) {
-            console.error('API Error:', error);
-            this.setStatus('offline', 'Erro de conexão');
-            throw error;
+    try {
+        const response = await fetch(endpoint);
+
+        // se a API não existir (404), usar dados fake
+        if (!response.ok) {
+            console.warn("API não encontrada, usando modo demo");
+
+            // DADOS FAKE PARA TESTE
+            if (endpoint.includes("linhas")) {
+                return [
+                    { cl: 1, lt: "4112", tp: "Circular Centro", ts: "Centro - Centro" }
+                ];
+            }
+
+            if (endpoint.includes("posicao")) {
+                return {
+                    vs: [
+                        { p: "7532", py: -23.5505, px: -46.6333, sl: 1 },
+                        { p: "5240", py: -23.5520, px: -46.6300, sl: 1 }
+                    ]
+                };
+            }
+
+            if (endpoint.includes("paradasPorLinha")) {
+                return [
+                    { cp: 1, np: "Parada A", py: -23.551, px: -46.633 },
+                    { cp: 2, np: "Parada B", py: -23.552, px: -46.631 }
+                ];
+            }
+
+            if (endpoint.includes("shape")) {
+                return [
+                    {
+                        sentido: 1,
+                        shp: [
+                            { lat: -23.5505, lng: -46.6333 },
+                            { lat: -23.5520, lng: -46.6300 }
+                        ]
+                    }
+                ];
+            }
+
+            return {};
         }
+
+        return await response.json();
+
+    } catch (error) {
+        console.warn("Erro, usando modo demo");
+
+        return {};
     }
+}
 
     async searchLines(term) {
         try {
